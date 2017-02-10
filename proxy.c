@@ -83,6 +83,13 @@ int main(int argc, char *argv[])
     listen(sockfd, 5);
     clilen - sizeof(cli_addr);
 
+    //create the remote host
+    serverAddr.sin_family = AF_INET;
+    serverAddr.sin_port = htons(dstPort);
+    serverAddr.sin_addr.s_addr = inet_addr(server);
+    memset(serverAddr.sin_zero, '\0', sizeof(serverAddr.sin_zero));
+
+
     //wait for connection
     //loop to wait for connection and start thread should be here
     while(true){
@@ -94,8 +101,11 @@ int main(int argc, char *argv[])
     }
 
     //thread should start here
+    //should be passed the new client
 
     //create a new connection to server using server and dstPort
+    addr_size = sizeof(serverAddr);
+    connect(newsockfd, (struct sockaddr *) &serverAddr, addr_size);
 
     //loop through and output based on user input
 
