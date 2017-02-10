@@ -107,6 +107,8 @@ int main(int argc, char *argv[])
     addr_size = sizeof(serverAddr);
     connect(newsockfd, (struct sockaddr *) &serverAddr, addr_size);
 
+    //check for input with select function, and pass through to the right socket.
+    
     //loop through and output based on user input
 
 
