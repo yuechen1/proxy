@@ -92,10 +92,10 @@ int main(int argc, char *argv[])
 
     //wait for connection
     //loop to wait for connection and start thread should be here
-    while(true){
+    while(0){
         newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
         if(newsockfd < 0){
-            error("error on accepting new client")
+            error("error on accepting new client");
         }
         //TODO, call thread
     }
@@ -104,14 +104,25 @@ int main(int argc, char *argv[])
     //should be passed the new client
 
     //create a new connection to server using server and dstPort
-    addr_size = sizeof(serverAddr);
+    int addr_size = sizeof(serverAddr);
     connect(newsockfd, (struct sockaddr *) &serverAddr, addr_size);
 
     //check for input with select function, and pass through to the right socket.
     
     //loop through and output based on user input
 
-
+    if (strncmp(tempstr, "-raw ", 5) == 0) {
+        
+    }
+    else if (strncmp(tempstr, "-strip ", 7) == 0) {
+        
+    }
+    else if (strncmp(tempstr, "-hex ", 5) == 0) {
+        
+    }
+    else if (strncmp(tempstr, "-autoN ", 7) == 0) {
+        
+    }
 
 
 }
