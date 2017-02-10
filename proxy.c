@@ -67,10 +67,30 @@ int main(int argc, char *argv[])
         dstPort = atoi(argv[4]);
     }
 
+
+    //create our host server to wait for clients
+    sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    if (sockfd < 0){
+        error("ERROR, cannot open hosting socket");
+    }
+    bzero((char *) &serv_addr, sizeof(serv_addr));
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_addr.s_addr = INADDR_ANY;
+    serv_addr.sin_port = htons(srcPort);
+    if(bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0){
+        error("Cannot bind src port");
+    }
+    listen(sockfd, 5);
+    clilen - sizeof(cli_addr);
+
     //wait for connection
     //loop to wait for connection and start thread should be here
     while(true){
-        
+        newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
+        if(newsockfd < 0){
+            error("error on accepting new client")
+        }
+        //TODO, call thread
     }
 
     //thread should start here
