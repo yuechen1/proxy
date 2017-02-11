@@ -9,6 +9,7 @@
 #include <errno.h>
 #include <dirent.h>
 #include <pthread.h>
+#include <ctype.h>
 
 /*
 *   Yue Chen                10065082    T03
@@ -28,18 +29,51 @@ void error(const char *msg)
 */
 void ongoingsocket(int input, int output, char *direct)
 {
-    
+    //buffers for this read/write
+    char inputbuffer[1024];
+
+    while(0){
+
+        //get input from socket
+        recv(input, inputbuffer, 1024, 0);
+
+
+        //print operation here
+        if (logOptions = 1) {
+            printf("%s%s\n",direct, outputstring);
+        }
+        else if (logOptions = 2) {
+            int i;
+            printf(direct);
+            //loop to check if ascii
+            for(i = 0; inputbuffer[i] != '\0'; i++){
+                if(isascii(inputbuffer[i])){
+                    printf(inputbuffer[i]);
+                }else{
+                    printf('.');
+                }
+            }
+        }
+        else if (logOptions = 3) {
+
+        }
+        else if (logOptions = 4) {
+            
+        }
+
+        bzero(inputbuffer, sizeof(inputbuffer));
+
+        //send to output socket
+        write(output, inputbuffer, sizeof(inputbuffer));
+    }
 }
 
 
 int main(int argc, char *argv[])
 {
-    //buffers for reading from sockets and constants for printing related to buffer
     const char* incoming = "<----";
     const char* outgoing = "---->";
-    char inputbuffer[1024];
-    char outputbuffer[1024];
-    char *tempstr;
+    char tempstr[7];
     tempstr = (char *) malloc(5);
     /*
     * 0 is nothing
@@ -129,9 +163,4 @@ int main(int argc, char *argv[])
         ongoingsocket(newsockfd, sockcd, outgoing);
         ongoingsocket(sockcd, newsockfd, incoming);
     }
-
-    //check for input with select function, and pass through to the right socket.
-    
-    //loop through and output based on user input
-
 }
