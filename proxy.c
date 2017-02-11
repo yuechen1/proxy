@@ -24,10 +24,10 @@ void error(const char *msg)
 }
 
 /*this will be the threaded option
-* will pass all input to output, and print all input to concole for shits
+* will pass all input to output, and print all input to console for shits
 * will take socket numbers and the data direction string
 */
-void ongoingsocket(int input, int output, char *direct)
+void ongoingsocket(int input, int output, char *direct, int logOptions, int autoN)
 {
     //buffers for this read/write
     char inputbuffer[1024];
@@ -39,25 +39,25 @@ void ongoingsocket(int input, int output, char *direct)
 
 
         //print operation here
-        if (logOptions = 1) {
-            printf("%s%s\n",direct, outputstring);
+        if (logOptions = 1) {   //-raw
+            printf("%s%s\n",direct, inputbuffer);
         }
-        else if (logOptions = 2) {
+        else if (logOptions = 2) { //-strip
             int i;
             printf(direct);
             //loop to check if ascii
             for(i = 0; inputbuffer[i] != '\0'; i++){
                 if(isascii(inputbuffer[i])){
-                    printf(inputbuffer[i]);
+                    printf(&inputbuffer[i]);
                 }else{
-                    printf('.');
+                    printf(".");
                 }
             }
         }
-        else if (logOptions = 3) {
+        else if (logOptions = 3) {  //-hex
 
         }
-        else if (logOptions = 4) {
+        else if (logOptions = 4) {  //-autoN
             
         }
 
@@ -71,10 +71,9 @@ void ongoingsocket(int input, int output, char *direct)
 
 int main(int argc, char *argv[])
 {
-    const char* incoming = "<----";
-    const char* outgoing = "---->";
+    char* incoming = "<----";
+    char* outgoing = "---->";
     char tempstr[7];
-    tempstr = (char *) malloc(5);
     /*
     * 0 is nothing
     * 1 is -raw
@@ -83,10 +82,11 @@ int main(int argc, char *argv[])
     * 4 is -autoN
     */
     int logOptions = 0;
-    int autoN;
+    int autoN = 0;
 
     //socket variables
     struct sockaddr_in serv_addr, cli_addr;
+    struct sockaddr_in serverAddr;
 
     //input socket variables
     int sockfd, newsockfd, srcPort, sockcd;
@@ -121,6 +121,8 @@ int main(int argc, char *argv[])
         }
         else if (strncmp(tempstr, "-autoN ", 7) == 0) {
             logOptions = 4;
+            char c = tempstr[6];
+            autoN = atoi(&c);
         }
     }
 
@@ -156,11 +158,11 @@ int main(int argc, char *argv[])
         }
         //create a new socket to communicate with server
         sockcd = socket(PF_INET, SOCK_STREAM, 0);
-        connect(sockcd, (struct sockaddr *) &serverAddr, &serveraddr_size);
+        connect(sockcd, (struct sockaddr *) &serverAddr, serveraddr_size);
         //TODO, call thread
         //currently just calling the function
         //THIS IS NOT THREADED!!!!!!
-        ongoingsocket(newsockfd, sockcd, outgoing);
-        ongoingsocket(sockcd, newsockfd, incoming);
+        ongoingsocket(newsockfd, sockcd, outgoing, logOptions, autoN);
+        ongoingsocket(sockcd, newsockfd, incoming, logOptions, autoN);
     }
 }
