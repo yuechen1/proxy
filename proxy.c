@@ -8,6 +8,7 @@
 #include <arpa/inet.h>
 #include <errno.h>
 #include <dirent.h>
+#include <pthread.h>
 
 /*
 *   Yue Chen                10065082    T03
@@ -20,6 +21,16 @@ void error(const char *msg)
     perror(msg);
     exit(1);
 }
+
+/*this will be the threaded option
+* will pass all input to output, and print all input to concole for shits
+* will take socket numbers and the data direction string
+*/
+void ongoingsocket(int input, int output, char *direct)
+{
+    
+}
+
 
 int main(int argc, char *argv[])
 {
@@ -41,13 +52,13 @@ int main(int argc, char *argv[])
     int autoN;
 
     //socket variables
-    struct sockaddr_in serv_addr, cli_addr, serverAddr;
+    struct sockaddr_in serv_addr, cli_addr;
 
     //input socket variables
-    int sockfd, newsockfd, srcPort;
+    int sockfd, newsockfd, srcPort, sockcd;
     //output socket variables
     char server[1024];
-    int dstPort;
+    int dstPort, addr_size;
     socklen_t clilen, serveraddr_size;
 
     //get port numbers and address from argv
@@ -66,16 +77,16 @@ int main(int argc, char *argv[])
         strcpy(server, argv[3]);
         dstPort = atoi(argv[4]);
         if (strncmp(tempstr, "-raw ", 5) == 0) {
-            logOptions = 
+            logOptions = 1;
         }
         else if (strncmp(tempstr, "-strip ", 7) == 0) {
-            
+            logOptions = 2;
         }
         else if (strncmp(tempstr, "-hex ", 5) == 0) {
-            
+            logOptions = 3;
         }
         else if (strncmp(tempstr, "-autoN ", 7) == 0) {
-            
+            logOptions = 4;
         }
     }
 
@@ -100,7 +111,7 @@ int main(int argc, char *argv[])
     serverAddr.sin_port = htons(dstPort);
     serverAddr.sin_addr.s_addr = inet_addr(server);
     memset(serverAddr.sin_zero, '\0', sizeof(serverAddr.sin_zero));
-
+    serveraddr_size = sizeof(serverAddr);
 
     //wait for connection
     //loop to wait for connection and start thread should be here
@@ -109,15 +120,15 @@ int main(int argc, char *argv[])
         if(newsockfd < 0){
             error("error on accepting new client");
         }
+        //create a new socket to communicate with server
+        sockcd = socket(PF_INET, SOCK_STREAM, 0);
+        connect(sockcd, (struct sockaddr *) &serverAddr, &serveraddr_size);
         //TODO, call thread
+        //currently just calling the function
+        //THIS IS NOT THREADED!!!!!!
+        ongoingsocket(newsockfd, sockcd, outgoing);
+        ongoingsocket(sockcd, newsockfd, incoming);
     }
-
-    //thread should start here
-    //should be passed the new client
-
-    //create a new connection to server using server and dstPort
-    int addr_size = sizeof(serverAddr);
-    connect(newsockfd, (struct sockaddr *) &serverAddr, addr_size);
 
     //check for input with select function, and pass through to the right socket.
     
