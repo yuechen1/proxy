@@ -65,6 +65,18 @@ int main(int argc, char *argv[])
         srcPort = atoi(argv[2]);
         strcpy(server, argv[3]);
         dstPort = atoi(argv[4]);
+        if (strncmp(tempstr, "-raw ", 5) == 0) {
+            logOptions = 
+        }
+        else if (strncmp(tempstr, "-strip ", 7) == 0) {
+            
+        }
+        else if (strncmp(tempstr, "-hex ", 5) == 0) {
+            
+        }
+        else if (strncmp(tempstr, "-autoN ", 7) == 0) {
+            
+        }
     }
 
 
@@ -110,19 +122,5 @@ int main(int argc, char *argv[])
     //check for input with select function, and pass through to the right socket.
     
     //loop through and output based on user input
-
-    if (strncmp(tempstr, "-raw ", 5) == 0) {
-        
-    }
-    else if (strncmp(tempstr, "-strip ", 7) == 0) {
-        
-    }
-    else if (strncmp(tempstr, "-hex ", 5) == 0) {
-        
-    }
-    else if (strncmp(tempstr, "-autoN ", 7) == 0) {
-        
-    }
-
 
 }
