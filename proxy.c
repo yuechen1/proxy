@@ -55,7 +55,19 @@ void ongoingsocket(int input, int output, char *direct, int logOptions, int auto
             }
         }
         else if (logOptions = 3) {  //-hex
-
+            int j;
+            int spaceCount = 0;
+            int len = sizeof(inputbuffer);
+            for (j = 0; j < len; j++) {
+                if (isascii(inputbuffer[j])) {
+                    printf(" %02x ", inputbuffer[j]);
+                    spaceCount = spaceCount++;
+                    if (spaceCount == 2) {
+                        printf(" ");
+                        spaceCount = 0;
+                    }
+                }
+            }
         }
         else if (logOptions = 4) {  //-autoN
             
