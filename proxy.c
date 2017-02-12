@@ -27,6 +27,11 @@ struct threadstuff {
     int autoN;
 };
 
+struct threadbase{
+    pthread_t source, dest;
+    int ssocket, dsocket;
+};
+
 
 void error(const char *msg)
 {
@@ -61,7 +66,7 @@ void *ongoingsocket(void *params)
 			}
 			else if (themparams->logOptions == 2) { //-strip
 				
-				printf("%s", themparams->direct);
+				printf("\n%s", themparams->direct);
 				//loop to check if ascii
 				for(i = 0; inputbuffer[i] != '\0'; i++){
 					if(isascii(inputbuffer[i])){
@@ -75,9 +80,9 @@ void *ongoingsocket(void *params)
 				//not just print hex!!!!
 				//output is like ----hex---- string
 				//this will print 10 hex and 10 string on each line
-				printf("%s", themparams->direct);
+				printf("\n%s", themparams->direct);
 				for (i = 0; inputbuffer[i] != '\0'; i++) {
-					printf("%02x", inputbuffer[i]);
+					printf(" %02x", inputbuffer[i]);
 					//store the print character in hexbuffer
 					//only 10 at a time
 					if(isascii(inputbuffer[i])){
@@ -93,10 +98,10 @@ void *ongoingsocket(void *params)
 				}
 			}
 			else if (themparams->logOptions == 4) {  //-autoN 
-				printf("%s", themparams->direct);
+				printf("\n%s", themparams->direct);
 				for(i = 0; inputbuffer[i] != '\0'; i++)
 				{
-					if(i%themparams->autoN == 0){
+					if(i%themparams->autoN == themparams->autoN-1){
 						printf("\n%s", themparams->direct);
 					}
 					if(inputbuffer[i] == '\\'){
@@ -120,10 +125,15 @@ void *ongoingsocket(void *params)
 			}
 
 			//send to output socket
-			printf("inputbuffer contains %s\n", inputbuffer);
-			write(themparams->output, inputbuffer, n);
+			//printf("inputbuffer contains %s\n", inputbuffer);
+            if(write(themparams->output, inputbuffer, n) <= 0){
+                break;
+            }
 			bzero(inputbuffer, sizeof(inputbuffer));
 		}
+        else if(n == -1){
+            break;
+        }
         
     }
 }
@@ -134,16 +144,20 @@ int main(int argc, char *argv[])
     char* incoming = "<----";
     char* outgoing = "---->";
     char tempstr[7];
+    char autotemp[5];
     pthread_attr_t attr;
+    //make an array of threads
+    //struct threadbase *eads = (sizeof(struct threadbase))malloc(5);
     /*
     * 0 is nothing
     * 1 is -raw
-    * 2 is -strip
+    * 2 is -strip)
     * 3 is -hex
     * 4 is -autoN
     */
     int logOptions = 0;
     int autoN = 0;
+    int threadcounter;
 
     //socket variables
     struct sockaddr_in serv_addr, cli_addr;
@@ -176,7 +190,6 @@ int main(int argc, char *argv[])
         dstPort = atoi(argv[4]);
         serverHost = gethostbyname(argv[3]);
         printf("argv3 contains %s\n", argv[3]);
-        printf("serverHost contains %s\n", serverHost);
         if(serverHost == NULL){
 			error("everything is wrong");
 		}
@@ -191,10 +204,11 @@ int main(int argc, char *argv[])
         else if (strncmp(tempstr, "-hex", 4) == 0) {
             logOptions = 3;
         }
-        else if (strncmp(tempstr, "-autoN", 7) == 0) {
+        else if (strncmp(tempstr, "-auto", 5) == 0) {
             logOptions = 4;
-            char c = tempstr[6];
-            autoN = atoi(&c);
+            strncpy(autotemp, &tempstr[5], sizeof(argv[1]) - 5);
+            autoN = atoi(autotemp);
+            printf("autoN N: %d\n", autoN);
         }
     }
 
@@ -233,6 +247,7 @@ int main(int argc, char *argv[])
         struct threadstuff params2;
         pthread_t thread1, thread2;
 		sockcd = socket(PF_INET, SOCK_STREAM, 0);
+    
     while(1){
         newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
         if(newsockfd < 0){
