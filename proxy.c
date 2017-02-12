@@ -17,13 +17,13 @@
 *
 */
 //structure for passing arguments to thread
-typedef struct threadstuff{
+typedef struct {
     int input;
     int output;
     char *direct;
     int logOptions;
     int autoN;
-}
+}threadstuff;
 
 
 void error(const char *msg)
@@ -43,12 +43,13 @@ void *ongoingsocket(void* params)
     char inputbuffer[1024];
     int i;
     char hexbuffer[11]; //a buffer for holding 10 characters for the string part
-    int N = params->autoN + 1;
+    int N = params->autoN;
+    N++;
 
     while(0){
 
         //get input from socket
-        recv(themparams->input, themparams->inputbuffer, 1024, 0);
+        recv(themparams->input, inputbuffer, 1024, 0);
 
 
         //print operation here
@@ -91,11 +92,11 @@ void *ongoingsocket(void* params)
                 }
             }
         }
-        else if (logOptions == 4) {  //-autoN 
+        else if (themparams->logOptions == 4) {  //-autoN 
             printf("%s", themparams->direct);
             for(i = 0; inputbuffer[i] != '\0'; i++)
             {
-                if(i%autoN == 0){
+                if(i%themparams->autoN == 0){
                     printf("\n%s", themparams->direct);
                 }
                 if(inputbuffer[i] == '\\'){
@@ -121,9 +122,8 @@ void *ongoingsocket(void* params)
         bzero(inputbuffer, sizeof(inputbuffer));
 
         //send to output socket
-        write(themparams->output, themparams->inputbuffer, sizeof(themparams->inputbuffer));
+        write(themparams->output, inputbuffer, sizeof(themparams->inputbuffer));
     }
-    return;
 }
 
 
