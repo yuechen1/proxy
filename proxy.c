@@ -21,7 +21,7 @@ typedef struct threadstuff{
     int input;
     int output;
     char *direct;
-    int logOptions
+    int logOptions;
     int autoN;
 }
 
@@ -210,6 +210,9 @@ int main(int argc, char *argv[])
 
     //wait for connection
     //loop to wait for connection and start thread should be here
+        struct threadstuff params1;
+        struct threadstuff params2;
+        pthread_t thread1, thread2;
     while(0){
         newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
         if(newsockfd < 0){
@@ -218,10 +221,25 @@ int main(int argc, char *argv[])
         //create a new socket to communicate with server
         sockcd = socket(PF_INET, SOCK_STREAM, 0);
         connect(sockcd, (struct sockaddr *) &serverAddr, serveraddr_size);
-        //TODO, call thread
-        //currently just calling the function
-        //THIS IS NOT THREADED!!!!!!
-        ongoingsocket(newsockfd, sockcd, outgoing, logOptions, autoN);
-        ongoingsocket(sockcd, newsockfd, incoming, logOptions, autoN);
+        //create thread params
+        params1.input = newsockfd;
+        params1.output = sockcd;
+        params1.direct = outgoing;
+        params1.logOptions = logOptions;
+        params1.autoN = autoN;
+
+        params2.input = sockcd;
+        params2.output = newsockfd;
+        params2.direct = incoming;
+        params2.logOptions = logOptions;
+        params2.autoN = autoN;
+
+        //create threadstuff
+        if(pthread_create(&thread1, NULL, &ongoingsocket, (void *) params1) != 0){
+            error("cannot make thread 1");
+        }
+        if(pthread_create(&thread2, NULL, &ongoingsocket, (void *) params2) != 0){
+            error("cannot make thread 2");
+        }
     }
 }
