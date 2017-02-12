@@ -102,7 +102,7 @@ void ongoingsocket(int input, int output, char *direct, int logOptions, int auto
                 else if(inputbuffer[i] < 32 && inputbuffer[i] > 127){
                     printf(&inputbuffer[i]);
                 }else{
-                    printf("\\s%02x", inputbuffer[i], inputbuffer[i]);
+                    printf("\\%s%02x", inputbuffer[i], inputbuffer[i]);
                 }
             }
         }
