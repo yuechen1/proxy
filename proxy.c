@@ -16,6 +16,15 @@
 *   Yin-Li (Emily) Chow     10103742    T01
 *
 */
+//structure for passing arguments to thread
+typedef struct threadstuff{
+    int input;
+    int output;
+    char *direct;
+    int logOptions
+    int autoN;
+}
+
 
 void error(const char *msg)
 {
@@ -27,30 +36,31 @@ void error(const char *msg)
 * will pass all input to output, and print all input to console for shits
 * will take socket numbers and the data direction string
 */
-void ongoingsocket(int input, int output, char *direct, int logOptions, int autoN)
+void *ongoingsocket(void* params)
 {
+    struct threadstuff *themparams = params;
     //buffers for this read/write
     char inputbuffer[1024];
     int i;
     char hexbuffer[11]; //a buffer for holding 10 characters for the string part
-    int N = autoN + 1;
+    int N = params->autoN + 1;
 
     while(0){
 
         //get input from socket
-        recv(input, inputbuffer, 1024, 0);
+        recv(themparams->input, themparams->inputbuffer, 1024, 0);
 
 
         //print operation here
-        if(logOptions == 0){
+        if(themparams->logOptions == 0){
 
         }
-        else if (logOptions == 1) {   //-raw
-            printf("%s%s\n",direct, inputbuffer);
+        else if (themparams->logOptions == 1) {   //-raw
+            printf("%s%s\n",themparams->direct, inputbuffer);
         }
-        else if (logOptions == 2) { //-strip
+        else if (themparams->logOptions == 2) { //-strip
             
-            printf("%s", direct);
+            printf("%s", themparams->direct);
             //loop to check if ascii
             for(i = 0; inputbuffer[i] != '\0'; i++){
                 if(isascii(inputbuffer[i])){
@@ -60,11 +70,11 @@ void ongoingsocket(int input, int output, char *direct, int logOptions, int auto
                 }
             }
         }
-        else if (logOptions == 3) {  //-hexdump -C
+        else if (themparams->logOptions == 3) {  //-hexdump -C
             //not just print hex!!!!
             //output is like ----hex---- string
             //this will print 10 hex and 10 string on each line
-
+            printf("%s", themparams->direct);
             for (i = 0; inputbuffer[i] != '\0'; i++) {
                 printf("%02x", inputbuffer[i]);
                 //store the print character in hexbuffer
@@ -76,16 +86,17 @@ void ongoingsocket(int input, int output, char *direct, int logOptions, int auto
                 }
                 if((i%10) == 9){
                     hexbuffer[10] = '\0';
-                    printf(" %s\n", hexbuffer);
+                    printf(" %s\n%s", hexbuffer,themparams->direct);
                     bzero(hexbuffer, sizeof(hexbuffer));
                 }
             }
         }
         else if (logOptions == 4) {  //-autoN 
+            printf("%s", themparams->direct);
             for(i = 0; inputbuffer[i] != '\0'; i++)
             {
                 if(i%autoN == 0){
-                    printf("\n");
+                    printf("\n%s", themparams->direct);
                 }
                 if(inputbuffer[i] == '\\'){
                     printf("\\\\");
@@ -110,7 +121,7 @@ void ongoingsocket(int input, int output, char *direct, int logOptions, int auto
         bzero(inputbuffer, sizeof(inputbuffer));
 
         //send to output socket
-        write(output, inputbuffer, sizeof(inputbuffer));
+        write(themparams->output, themparams->inputbuffer, sizeof(themparams->inputbuffer));
     }
     return;
 }
@@ -121,6 +132,7 @@ int main(int argc, char *argv[])
     char* incoming = "<----";
     char* outgoing = "---->";
     char tempstr[7];
+    pthread_attr_t attr;
     /*
     * 0 is nothing
     * 1 is -raw
