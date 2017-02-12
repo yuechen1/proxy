@@ -17,13 +17,13 @@
 *
 */
 //structure for passing arguments to thread
-typedef struct {
+typedef struct threadstuff{
     int input;
     int output;
     char *direct;
     int logOptions;
     int autoN;
-}threadstuff;
+};
 
 
 void error(const char *msg)
