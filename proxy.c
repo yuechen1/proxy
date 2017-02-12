@@ -50,11 +50,11 @@ void ongoingsocket(int input, int output, char *direct, int logOptions, int auto
         }
         else if (logOptions == 2) { //-strip
             
-            printf(direct);
+            printf("%s", direct);
             //loop to check if ascii
             for(i = 0; inputbuffer[i] != '\0'; i++){
                 if(isascii(inputbuffer[i])){
-                    printf(&inputbuffer[i]);
+                    printf("%c", inputbuffer[i]);
                 }else{
                     printf(".");
                 }
@@ -72,7 +72,7 @@ void ongoingsocket(int input, int output, char *direct, int logOptions, int auto
                 if(isascii(inputbuffer[i])){
                     hexbuffer[i%10] = inputbuffer[i];
                 }else{
-                    hexbuffer[i%10] = ".";
+                    hexbuffer[i%10] = '.';
                 }
                 if((i%10) == 9){
                     hexbuffer[10] = '\0';
@@ -100,9 +100,9 @@ void ongoingsocket(int input, int output, char *direct, int logOptions, int auto
                     printf("\\r");
                 }
                 else if(inputbuffer[i] < 32 && inputbuffer[i] > 127){
-                    printf(&inputbuffer[i]);
+                    printf("%c", inputbuffer[i]);
                 }else{
-                    printf("\\%s%02x", inputbuffer[i], inputbuffer[i]);
+                    printf("\\%c%02x", inputbuffer[i], inputbuffer[i]);
                 }
             }
         }
