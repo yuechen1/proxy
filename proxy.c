@@ -31,6 +31,9 @@ void ongoingsocket(int input, int output, char *direct, int logOptions, int auto
 {
     //buffers for this read/write
     char inputbuffer[1024];
+    int i;
+    char hexbuffer[11]; //a buffer for holding 10 characters for the string part
+    int N = autoN + 1;
 
     while(0){
 
@@ -39,11 +42,14 @@ void ongoingsocket(int input, int output, char *direct, int logOptions, int auto
 
 
         //print operation here
-        if (logOptions = 1) {   //-raw
+        if(logOptions == 0){
+
+        }
+        else if (logOptions == 1) {   //-raw
             printf("%s%s\n",direct, inputbuffer);
         }
-        else if (logOptions = 2) { //-strip
-            int i;
+        else if (logOptions == 2) { //-strip
+            
             printf(direct);
             //loop to check if ascii
             for(i = 0; inputbuffer[i] != '\0'; i++){
@@ -54,23 +60,51 @@ void ongoingsocket(int input, int output, char *direct, int logOptions, int auto
                 }
             }
         }
-        else if (logOptions = 3) {  //-hex
-            int j;
-            int spaceCount = 0;
-            int len = sizeof(inputbuffer);
-            for (j = 0; j < len; j++) {
-                if (isascii(inputbuffer[j])) {
-                    printf(" %02x ", inputbuffer[j]);
-                    spaceCount = spaceCount++;
-                    if (spaceCount == 2) {
-                        printf(" ");
-                        spaceCount = 0;
-                    }
+        else if (logOptions == 3) {  //-hexdump -C
+            //not just print hex!!!!
+            //output is like ----hex---- string
+            //this will print 10 hex and 10 string on each line
+
+            for (i = 0; inputbuffer[i] != '\0'; i++) {
+                printf("%02x", inputbuffer[i]);
+                //store the print character in hexbuffer
+                //only 10 at a time
+                if(isascii(inputbuffer[i])){
+                    hexbuffer[i%10] = inputbuffer[i];
+                }else{
+                    hexbuffer[i%10] = ".";
+                }
+                if((i%10) == 9){
+                    hexbuffer[10] = '\0';
+                    printf(" %s\n", hexbuffer);
+                    bzero(hexbuffer, sizeof(hexbuffer));
                 }
             }
         }
-        else if (logOptions = 4) {  //-autoN
-            
+        else if (logOptions == 4) {  //-autoN 
+            for(i = 0; inputbuffer[i] != '\0'; i++)
+            {
+                if(i%autoN == 0){
+                    printf("\n");
+                }
+                if(inputbuffer[i] == '\\'){
+                    printf("\\\\");
+                }
+                else if(inputbuffer[i] == '\t'){
+                    printf("\\t");
+                }
+                else if(inputbuffer[i] == '\n'){
+                    printf("\\n");
+                }
+                else if(inputbuffer[i] == '\r'){
+                    printf("\\r");
+                }
+                else if(inputbuffer[i] < 32 && inputbuffer[i] > 127){
+                    printf(&inputbuffer[i]);
+                }else{
+                    printf("\\s%02x", inputbuffer[i], inputbuffer[i]);
+                }
+            }
         }
 
         bzero(inputbuffer, sizeof(inputbuffer));
@@ -78,6 +112,7 @@ void ongoingsocket(int input, int output, char *direct, int logOptions, int auto
         //send to output socket
         write(output, inputbuffer, sizeof(inputbuffer));
     }
+    return;
 }
 
 
