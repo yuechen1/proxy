@@ -45,7 +45,9 @@ void *ongoingsocket(void *params)
     char hexbuffer[11]; //a buffer for holding 10 characters for the string part
     int N = themparams->autoN;
 
-    while(0){
+    printf("");
+
+    while(1){
 
         //get input from socket
         recv(themparams->input, inputbuffer, 1024, 0);
@@ -198,7 +200,7 @@ int main(int argc, char *argv[])
         error("Cannot bind src port");
     }
     listen(sockfd, 5);
-    clilen - sizeof(cli_addr);
+    clilen = sizeof(cli_addr);
 
     //create the remote host
     serverAddr.sin_family = AF_INET;
@@ -212,8 +214,9 @@ int main(int argc, char *argv[])
         struct threadstuff params1;
         struct threadstuff params2;
         pthread_t thread1, thread2;
-    while(0){
+    while(1){
         newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
+        printf("got new connection: %d", newsockfd);
         if(newsockfd < 0){
             error("error on accepting new client");
         }
