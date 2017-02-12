@@ -17,7 +17,7 @@
 *
 */
 //structure for passing arguments to thread
-typedef struct threadstuff{
+struct threadstuff {
     int input;
     int output;
     char *direct;
@@ -36,15 +36,14 @@ void error(const char *msg)
 * will pass all input to output, and print all input to console for shits
 * will take socket numbers and the data direction string
 */
-void *ongoingsocket(void* params)
+void *ongoingsocket(void *params)
 {
     struct threadstuff *themparams = params;
     //buffers for this read/write
     char inputbuffer[1024];
     int i;
     char hexbuffer[11]; //a buffer for holding 10 characters for the string part
-    int N = params->autoN;
-    N++;
+    int N = themparams->autoN;
 
     while(0){
 
@@ -122,7 +121,7 @@ void *ongoingsocket(void* params)
         bzero(inputbuffer, sizeof(inputbuffer));
 
         //send to output socket
-        write(themparams->output, inputbuffer, sizeof(themparams->inputbuffer));
+        write(themparams->output, inputbuffer, sizeof(inputbuffer));
     }
 }
 
@@ -235,10 +234,11 @@ int main(int argc, char *argv[])
         params2.autoN = autoN;
 
         //create threadstuff
-        if(pthread_create(&thread1, NULL, &ongoingsocket, (void *) params1) != 0){
+        if(pthread_create(&thread1, NULL, ongoingsocket, &params1) != 0){
             error("cannot make thread 1");
         }
-        if(pthread_create(&thread2, NULL, &ongoingsocket, (void *) params2) != 0){
+
+        if(pthread_create(&thread2, NULL, ongoingsocket, &params2) != 0){
             error("cannot make thread 2");
         }
     }
