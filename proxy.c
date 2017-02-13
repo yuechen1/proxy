@@ -11,6 +11,7 @@
 #include <pthread.h>
 #include <ctype.h>
 #include <netdb.h>
+#include <time.h>
 
 
 /*
@@ -30,6 +31,7 @@ struct threadstuff {
 struct threadbase{
     pthread_t source, dest;
     int ssocket, dsocket;
+    struct threadstuff params1, params2;
 };
 
 
@@ -52,6 +54,9 @@ void *ongoingsocket(void *params)
     char hexbuffer[11]; //a buffer for holding 10 characters for the string part
     int N = themparams->autoN;
     int n;
+
+
+
     while(1){
 
         //get input from socket
@@ -146,8 +151,9 @@ int main(int argc, char *argv[])
     char tempstr[7];
     char autotemp[5];
     pthread_attr_t attr;
+    
     //make an array of threads
-    //struct threadbase *eads = (sizeof(struct threadbase))malloc(5);
+    struct threadbase *threads = (struct threadbase *) malloc(5);
     /*
     * 0 is nothing
     * 1 is -raw
@@ -171,6 +177,10 @@ int main(int argc, char *argv[])
     int dstPort, addr_size;
     socklen_t clilen, serveraddr_size;
 
+    //time/date variables
+    time_t thetime;
+    struct tm * timedetails;
+
     //get port numbers and address from argv
     if(argc < 4 || argc > 5){
         fprintf(stderr, "ERROR, invalid arguments\n");
@@ -181,7 +191,7 @@ int main(int argc, char *argv[])
         //strcpy(server, argv[2]);
         dstPort = atoi(argv[3]);
         serverHost = gethostbyname(argv[2]);
-        printf("argv2 contains %s\n", argv[2]);
+        printf("Port logger running: srcPort=%s host=%s dstPort=%s\n", argv[1], argv[2], argv[3]);
     }
     else if(argc == 5){
         strcpy(tempstr, argv[1]);
@@ -189,7 +199,7 @@ int main(int argc, char *argv[])
         //strcpy(server, argv[3]);
         dstPort = atoi(argv[4]);
         serverHost = gethostbyname(argv[3]);
-        printf("argv3 contains %s\n", argv[3]);
+        printf("Port logger running: srcPort=%s host=%s dstPort=%s\n", argv[2], argv[3], argv[4]);
         if(serverHost == NULL){
 			error("everything is wrong");
 		}
@@ -212,8 +222,6 @@ int main(int argc, char *argv[])
         }
     }
 
-	printf("server string contains %s\n", server);
-
     //create our host server to wait for clients
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0){
@@ -227,57 +235,65 @@ int main(int argc, char *argv[])
         error("Cannot bind src port");
     }
     listen(sockfd, 5);
-    clilen - sizeof(cli_addr);
+    clilen = sizeof(cli_addr);
 	
 	
     //create the remote host
     bzero((char *) &serverAddr, sizeof(serverAddr));
     serverAddr.sin_family = AF_INET;
     serverAddr.sin_port = htons(dstPort);
-    //serverAddr.sin_addr.s_addr = inet_addr(serverHost->h_addr);
-    printf("serverAddr is %s\n", serverHost->h_addr);
-    printf("reach 223\n");
     bcopy((char*)serverHost->h_addr, (char *)&serverAddr.sin_addr.s_addr, serverHost->h_length);
     memset(serverAddr.sin_zero, '\0', sizeof(serverAddr.sin_zero));
     serveraddr_size = sizeof(serverAddr);
 
     //wait for connection
-    //loop to wait for connection and start thread should be here
-        struct threadstuff params1;
-        struct threadstuff params2;
-        pthread_t thread1, thread2;
-		sockcd = socket(PF_INET, SOCK_STREAM, 0);
-    
+    //loop to wait for connection and start thread should be here  
+    threadcounter = 0;
     while(1){
         newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
         if(newsockfd < 0){
             error("error on accepting new client");
         }
+
+        time (&thetime);
+        timedetails = localtime (&thetime);
+        printf("New connection: %sConnection from %d.%d.%d.%d\n", asctime(timedetails), 
+            cli_addr.sin_addr.s_addr&0xFF,
+            (cli_addr.sin_addr.s_addr&0xFF00) >> 8,
+            (cli_addr.sin_addr.s_addr&0xFF0000) >> 16,
+            (cli_addr.sin_addr.s_addr&0xFF000000) >> 24);
         //create a new socket to communicate with server
         
+        sockcd = socket(PF_INET, SOCK_STREAM, 0);
         if (connect(sockcd, (struct sockaddr*) &serverAddr, serveraddr_size) < 0) {
 			error("ERROR, server-side socket failed.\n");
 		}
-        //create thread params
-        params1.input = newsockfd;
-        params1.output = sockcd;
-        params1.direct = outgoing;
-        params1.logOptions = logOptions;
-        params1.autoN = autoN;
 
-        params2.input = sockcd;
-        params2.output = newsockfd;
-        params2.direct = incoming;
-        params2.logOptions = logOptions;
-        params2.autoN = autoN;
+        //store socket in array
+        threads[threadcounter].ssocket = newsockfd;
+        threads[threadcounter].dsocket = sockcd;
+
+        //create thread params
+        threads[threadcounter].params1.input = newsockfd;
+        threads[threadcounter].params1.output = sockcd;
+        threads[threadcounter].params1.direct = outgoing;
+        threads[threadcounter].params1.logOptions = logOptions;
+        threads[threadcounter].params1.autoN = autoN;
+
+        threads[threadcounter].params2.input = sockcd;
+        threads[threadcounter].params2.output = newsockfd;
+        threads[threadcounter].params2.direct = incoming;
+        threads[threadcounter].params2.logOptions = logOptions;
+        threads[threadcounter].params2.autoN = autoN;
 
         //create threadstuff
-        if(pthread_create(&thread1, NULL, ongoingsocket, &params1) != 0){
+        if(pthread_create(&(threads[threadcounter].source), NULL, ongoingsocket, &(threads[threadcounter].params1)) != 0){
             error("cannot make thread 1");
         }
 
-        if(pthread_create(&thread2, NULL, ongoingsocket, &params2) != 0){
+        if(pthread_create(&(threads[threadcounter].dest), NULL, ongoingsocket, &(threads[threadcounter].params2)) != 0){
             error("cannot make thread 2");
         }
+        threadcounter++;
     }
 }
